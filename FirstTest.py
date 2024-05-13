@@ -3,28 +3,60 @@ import pygame, random
 
 # pygame setup
 pygame.init()
-screen = pygame.display.set_mode((1280, 720))
+screen_width = 720
+screen_height = 1280
+screen = pygame.display.set_mode((screen_height, screen_width))
 clock = pygame.time.Clock()
 running = True
 dt = 0
+squares = []
 
-player_pos = pygame.Rect(10, 10, 5, 5)
+grid_width = screen.get_width() // 50
+grid_height = screen.get_height() // 50
+grid = [[False for _ in range(grid_width)] for _ in range(grid_height)]
+
+
+def Square(left, top, width, height):
+    grid_x = left // width
+    grid_y = top // height
+
+    if grid_y < len(grid) and grid_x < len(grid[0]) and grid[grid_y][grid_x]:
+        return None
+
+    pygame.draw.rect(screen, "red", (left, top, width, height), 2)
+
+    if grid_y < len(grid) and grid_x < len(grid[0]):
+        grid[grid_y][grid_x] = True
+
+    new_top = top + height
+    if new_top < screen_height:
+        return (left, new_top)
+    else:
+        return None
+
 
 while running:
+
     # poll for events
     # pygame.QUIT event means the user clicked X to close your window
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    squares.append((mouse_x, mouse_y))
 
-    # fill the screen with a color to wipe away anything from last frame
     screen.fill("black")
 
-    # pygame.draw.rect(screen, "Red", player_pos, 10)
-    pygame.draw.rect(screen, "red", player_pos, 10)
-    if player_pos.top < screen.get_height() - 10:
-        player_pos.top += 1
-    
+    updated_squares = []
+    for (x, y) in squares:
+        updated_position = Square(x, y, 5, 5)
+        if updated_position is not None:
+            updated_squares.append(updated_position)
+
+    squares = updated_squares
+
     # flip() the display to put your work on screen
     pygame.display.flip()
 
