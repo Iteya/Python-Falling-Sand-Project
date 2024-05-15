@@ -10,33 +10,67 @@ clock = pygame.time.Clock()
 running = True
 dt = 0
 squares = []
+type = []
+mouse_pressed = False
 
-grid_width = screen.get_width() // 50
-grid_height = screen.get_height() // 50
-grid = [[0 for _ in range(grid_height)] for _ in range(grid_width)]
-print(grid[24])
+grid_width = screen.get_width() // 5
+grid_height = screen.get_height() // 5
+grid = [[0 for _ in range(grid_height)] for _ in range(grid_width + 1)]
+width = len(grid)
+height = len(grid[1])
+
+def position_check(x, y):
+    return 0 <= y < height and 0 <= x < width
 
 
 def MoveSquare(x, y):
     try:
         if grid[x][y] == 1:
-            print("exists")
-            if grid[x][y - 1] == 0:
-                print("moved")
+            if grid[x][y + 1] == 0:
                 grid[x][y] = 0
-                grid[x][y + 1] = 1
                 return (x, y + 1)
-            else:
-                print("Something's below me")
-                return (x, y)
-        else:
+            if grid[x + 1][y + 1] == 0:
+                grid[x][y] = 0
+                return (x + 1, y + 1)
+            if grid[x - 1][y + 1] == 0:
+                grid[x][y] = 0
+                return (x - 1, y + 1)
+
             return(x, y)
+        elif grid[x][y] == 2:
+            try:
+                if grid[x][y + 2] == 0:
+                    grid[x][y] = 0
+                    return (x, y + 2)
+                elif grid[x][y + 1] == 0:
+                    grid[x][y] = 0
+                    return (x, y + 1)
+            except:
+                if grid[x][y + 1] == 0:
+                    grid[x][y] = 0
+                    return (x, y + 1)
+            if grid[x + 1][y] == 0:
+                grid[x][y] = 0
+                return (x + 1, y)
+            elif grid[x + 1][y + 1] == 0:
+                grid[x][y] = 0
+                return (x + 1, y + 1)
+            if grid[x - 1][y] == 0:
+                grid[x][y] = 0
+                return (x - 1, y)
+            elif grid[x - 1][y + 1] == 0:
+                grid[x][y] = 0
+                return (x - 1, y + 1)
+
+            return (x, y)
+        else:
+            grid[x][y] = 0
+            return (x, y)
     except:
-        print("Broken :(")
         return(x, y)
 
-def DrawSquare(left, top, width, height):
-    pygame.draw.rect(screen, "red", (left, top, width, height), 2)
+def DrawSquare(col, left, top, width, height):
+    pygame.draw.rect(screen, col, (left, top, width, height), 5)
 
 
 while running:
@@ -46,23 +80,29 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-                squares.append(((mouse_x // 50) - 1, (mouse_y // 50) - 1))
-                grid[(mouse_x // 50) - 1][(mouse_y // 50) -1] = 1
+            mouse_pressed = True
+        if event.type == pygame.MOUSEBUTTONUP:
+            mouse_pressed = False
+
+    if mouse_pressed:
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        squares.append(((mouse_x // 5), (mouse_y // 5)))
+        type.append(random.randint(2, 2))
+        grid[(mouse_x // 5)][(mouse_y // 5)] = 1
+    
+    
     screen.fill("black")
 
-    #updated_squares = []
-    #for (x, y) in squares:
-    #    updated_position = Square(x, y, 5, 5)
-    #    if updated_position is not None:
-    #        updated_squares.append(updated_position)
-
-    #squares = updated_squares
-    
     for i, (x, y) in enumerate(squares):
         squares[i] = MoveSquare(x, y)
-        DrawSquare(x * 50, y * 50, 50, 50)
+        
+
+    for a, (x, y) in enumerate(squares):
+        grid[x][y] = type[a]
+        if type[a] == 1:
+            DrawSquare("red", x * 5, y * 5, 5, 5)
+        if type[a] == 2:
+            DrawSquare("blue", x * 5, y * 5, 5, 5)
 
     # flip() the display to put your work on screen
     pygame.display.flip()
