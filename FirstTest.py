@@ -19,50 +19,42 @@ grid = [[0 for _ in range(grid_height)] for _ in range(grid_width + 1)]
 width = len(grid)
 height = len(grid[1])
 
-def position_check(x, y):
-    return 0 <= y < height and 0 <= x < width
 
+def Sand(x, y):
+    if grid[x][y + 1] == 0:
+        grid[x][y] = 0
+        return (x, y + 1)
+    if grid[x + 1][y + 1] == 0:
+        grid[x][y] = 0
+        return (x + 1, y + 1)
+    if grid[x - 1][y + 1] == 0:
+        grid[x][y] = 0
+        return (x - 1, y + 1)
+    return (x, y)
+
+def Water(x, y):
+    if grid[x][y + 1] != 0:
+        dir = random.choice([-1, 1])
+        if grid[x + dir][y + 1] == 0:
+            grid[x][y] = 0
+            return (x + dir, y + 1)
+        elif grid[x + dir][y] == 0:
+            grid[x][y] = 0
+            return (x + dir, y)
+    elif grid[x][y + 1] == 0:
+        if grid[x][y + 2] == 0:
+            grid[x][y] = 0
+            return (x, y + 2)
+        grid[x][y] = 0
+        return (x, y + 1)
+    return (x, y)
 
 def MoveSquare(x, y):
     try:
         if grid[x][y] == 1:
-            if grid[x][y + 1] == 0:
-                grid[x][y] = 0
-                return (x, y + 1)
-            if grid[x + 1][y + 1] == 0:
-                grid[x][y] = 0
-                return (x + 1, y + 1)
-            if grid[x - 1][y + 1] == 0:
-                grid[x][y] = 0
-                return (x - 1, y + 1)
-
-            return(x, y)
+            return(Sand(x, y))
         elif grid[x][y] == 2:
-            try:
-                if grid[x][y + 2] == 0:
-                    grid[x][y] = 0
-                    return (x, y + 2)
-                elif grid[x][y + 1] == 0:
-                    grid[x][y] = 0
-                    return (x, y + 1)
-            except:
-                if grid[x][y + 1] == 0:
-                    grid[x][y] = 0
-                    return (x, y + 1)
-            if grid[x + 1][y] == 0:
-                grid[x][y] = 0
-                return (x + 1, y)
-            elif grid[x + 1][y + 1] == 0:
-                grid[x][y] = 0
-                return (x + 1, y + 1)
-            if grid[x - 1][y] == 0:
-                grid[x][y] = 0
-                return (x - 1, y)
-            elif grid[x - 1][y + 1] == 0:
-                grid[x][y] = 0
-                return (x - 1, y + 1)
-
-            return (x, y)
+            return(Water(x, y))
         else:
             grid[x][y] = 0
             return (x, y)
@@ -99,6 +91,8 @@ while running:
 
     for a, (x, y) in enumerate(squares):
         grid[x][y] = type[a]
+        if type[a] == -1:
+            DrawSquare("gray", x * 5, y * 5, 5, 5)
         if type[a] == 1:
             DrawSquare("red", x * 5, y * 5, 5, 5)
         if type[a] == 2:
