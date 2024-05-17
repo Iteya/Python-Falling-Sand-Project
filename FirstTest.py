@@ -19,17 +19,32 @@ grid = [[0 for _ in range(grid_height)] for _ in range(grid_width + 1)]
 width = len(grid)
 height = len(grid[1])
 
+def DrawSquare(col, left, top, width, height):
+    pygame.draw.rect(screen, col, (left, top, width, height), 5)
+
+for _ in range(width - 1):
+    grid[_][0] = -1
+    grid[_][height - 1] = -1
+    
+for _ in range(height - 1):
+    grid[0][_] = -1
+    grid[width - 2][_] = -1
+        
 
 def Sand(x, y):
     if grid[x][y + 1] == 0:
         grid[x][y] = 0
         return (x, y + 1)
-    if grid[x + 1][y + 1] == 0:
+    elif grid[x][y + 1] == 2:
         grid[x][y] = 0
-        return (x + 1, y + 1)
-    if grid[x - 1][y + 1] == 0:
+        return(x, y + 1)
+    dir = random.choice([-1, 1])
+    if grid[x + dir][y + 1] == 0:
         grid[x][y] = 0
-        return (x - 1, y + 1)
+        return (x + dir, y + 1)
+    elif grid[x + dir][y + 1] == 2:
+        grid[x][y] = 0
+        return(x + dir, y + 1)
     return (x, y)
 
 def Water(x, y):
@@ -51,7 +66,9 @@ def Water(x, y):
 
 def MoveSquare(x, y):
     try:
-        if grid[x][y] == 1:
+        if grid[x][y] == -1:
+            return(x, y)
+        elif grid[x][y] == 1:
             return(Sand(x, y))
         elif grid[x][y] == 2:
             return(Water(x, y))
@@ -61,8 +78,7 @@ def MoveSquare(x, y):
     except:
         return(x, y)
 
-def DrawSquare(col, left, top, width, height):
-    pygame.draw.rect(screen, col, (left, top, width, height), 5)
+
 
 
 while running:
@@ -79,15 +95,13 @@ while running:
     if mouse_pressed:
         mouse_x, mouse_y = pygame.mouse.get_pos()
         squares.append(((mouse_x // 5), (mouse_y // 5)))
-        type.append(random.randint(2, 2))
+        type.append(random.randint(1, 2))
         grid[(mouse_x // 5)][(mouse_y // 5)] = 1
-    
-    
+
     screen.fill("black")
 
     for i, (x, y) in enumerate(squares):
         squares[i] = MoveSquare(x, y)
-        
 
     for a, (x, y) in enumerate(squares):
         grid[x][y] = type[a]
@@ -98,9 +112,16 @@ while running:
         if type[a] == 2:
             DrawSquare("blue", x * 5, y * 5, 5, 5)
 
+    for _ in range(width - 1):
+        DrawSquare("gray", _ * 5, 0, 5, 5)
+        DrawSquare("gray", _ * 5, (height - 1) * 5, 5, 5)
+    
+    for _ in range(height - 1):
+        DrawSquare("gray", 0, _ * 5, 5, 5)
+        DrawSquare("gray", (width - 2) * 5, _ * 5, 5, 5)
     # flip() the display to put your work on screen
     pygame.display.flip()
 
-    clock.tick(60)  # limits FPS to 60
+    #clock.tick(60)  # limits FPS to 60
 
 pygame.quit()
