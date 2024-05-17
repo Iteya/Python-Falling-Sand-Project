@@ -10,67 +10,78 @@ clock = pygame.time.Clock()
 running = True
 dt = 0
 squares = []
+
+
 type = []
 mouse_pressed = False
 
-grid_width = screen.get_width() // 5
-grid_height = screen.get_height() // 5
+grid_width = screen.get_width() // 50
+grid_height = screen.get_height() // 50
 grid = [[0 for _ in range(grid_height)] for _ in range(grid_width + 1)]
 width = len(grid)
 height = len(grid[1])
 
-def position_check(x, y):
-    return 0 <= y < height and 0 <= x < width
+def Sand(x, y):
+    if grid[x][y + 1] == 0:
+        grid[x][y] = 0
+        grid[x][y + 1] = 1
+        return
+    if grid[x][y + 1] == 2:
+        grid[x][y] = 2
+        grid[x][y + 1] = 1
+        return
+    if grid[x + 1][y + 1] == 0:
+        grid[x][y] = 0
+        grid[x + 1][y + 1] = 1
+        return
+    if grid[x - 1][y + 1] == 0:
+        grid[x][y] = 0
+        grid[x - 1][y + 1] = 1
+        return
+    
+    return
 
-
-def MoveSquare(x, y):
-    try:
-        if grid[x][y] == 1:
-            if grid[x][y + 1] == 0:
-                grid[x][y] = 0
-                return (x, y + 1)
-            if grid[x + 1][y + 1] == 0:
-                grid[x][y] = 0
-                return (x + 1, y + 1)
-            if grid[x - 1][y + 1] == 0:
-                grid[x][y] = 0
-                return (x - 1, y + 1)
-
-            return(x, y)
-        elif grid[x][y] == 2:
-            try:
-                if grid[x][y + 2] == 0:
-                    grid[x][y] = 0
-                    return (x, y + 2)
-                elif grid[x][y + 1] == 0:
-                    grid[x][y] = 0
-                    return (x, y + 1)
-            except:
-                if grid[x][y + 1] == 0:
-                    grid[x][y] = 0
-                    return (x, y + 1)
-            if grid[x + 1][y] == 0:
-                grid[x][y] = 0
-                return (x + 1, y)
-            elif grid[x + 1][y + 1] == 0:
-                grid[x][y] = 0
-                return (x + 1, y + 1)
-            if grid[x - 1][y] == 0:
-                grid[x][y] = 0
-                return (x - 1, y)
-            elif grid[x - 1][y + 1] == 0:
-                grid[x][y] = 0
-                return (x - 1, y + 1)
-
-            return (x, y)
-        else:
+def Water(x, y):
+    if grid[x][y + 1] == 1:
+        grid[x][y] = 1
+        grid[x][y + 1] = 2
+        return
+    
+    if grid[x][y + 1] != 0:
+        dir = random.choice([-1, 1])
+        if grid[x + dir][y + 1] == 0:
             grid[x][y] = 0
-            return (x, y)
-    except:
-        return(x, y)
+            grid[x + dir][y + 1] = 2
+            return
+        elif grid[x + dir][y] == 0:
+            grid[x][y] = 0
+            grid[x + dir][y] = 2
+            return
+    elif grid[x][y + 1] == 0:
+        grid[x][y] = 0
+        grid[x][y + 1] = 2
+        return
+    
+    return
 
 def DrawSquare(col, left, top, width, height):
-    pygame.draw.rect(screen, col, (left, top, width, height), 5)
+    pygame.draw.rect(screen, col, (left, top, width, height), 50)
+
+for _ in range(width):
+    grid[_][height - 1] = -1
+    type.append(-1)
+    squares.append((_, height - 1))
+    grid[_][0] = -1
+    type.append(-1)
+    squares.append((_, 0))
+
+for _ in range(height):
+    grid[width - 1][_] = -1
+    type.append(-1)
+    squares.append((width - 1, _))
+    grid[0][_] = -1
+    type.append(-1)
+    squares.append((0, _))
 
 
 while running:
@@ -86,27 +97,37 @@ while running:
 
     if mouse_pressed:
         mouse_x, mouse_y = pygame.mouse.get_pos()
-        squares.append(((mouse_x // 5), (mouse_y // 5)))
-        type.append(random.randint(2, 2))
-        grid[(mouse_x // 5)][(mouse_y // 5)] = 1
+        try:
+            if grid[mouse_x // 50][mouse_y // 50] == 0:
+                grid[(mouse_x // 50)][(mouse_y // 50)] = random.randint(1, 2)
+        except:
+            print("Out of bounds")
     
     
     screen.fill("black")
-
-    for i, (x, y) in enumerate(squares):
-        squares[i] = MoveSquare(x, y)
         
 
-    for a, (x, y) in enumerate(squares):
-        grid[x][y] = type[a]
-        if type[a] == 1:
-            DrawSquare("red", x * 5, y * 5, 5, 5)
-        if type[a] == 2:
-            DrawSquare("blue", x * 5, y * 5, 5, 5)
+    for a in range(width):
+        for b in range(height):
+            #Move Phase
+            if grid[a][b] == 1:
+                Sand(a, b)
+            elif grid[a][b] == 2:
+                Water(a, b)
 
+    for a in range(width):
+        for b in range(height):
+            #Draw Phase
+            if grid[a][b] == -1:
+                DrawSquare("gray", a * 50, b * 50, 50, 50)
+            elif grid[a][b] == 1:
+                DrawSquare("red", a * 50, b * 50, 50, 50)
+            elif grid[a][b] == 2:
+                DrawSquare("blue", a * 50, b * 50, 50, 50)
+        
     # flip() the display to put your work on screen
     pygame.display.flip()
 
-    clock.tick(60)  # limits FPS to 60
+    clock.tick(10)  # limits FPS to 60
 
 pygame.quit()
